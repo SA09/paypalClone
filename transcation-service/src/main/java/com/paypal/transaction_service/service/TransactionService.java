@@ -7,8 +7,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import com.paypal.transaction_service.dto.MessageDto;
 import com.paypal.transaction_service.dto.TransferRequestDto;
 import com.paypal.transaction_service.entity.LedgerEntry;
 import com.paypal.transaction_service.entity.Transaction;
@@ -22,12 +24,16 @@ public class TransactionService {
 	private TransactionRepository transactionRepository;
     
     @Autowired
-	private LedgerEntryRepository ledgerEntryRepository
-	;
+	private LedgerEntryRepository ledgerEntryRepository;
+    
+    @Autowired
+	private KafkaProducerService kafkaProducerService;
 	
-	public Transaction createTransaction(Long fromUserId, Long toUserId, UUID referanceNumber, BigDecimal amount ) {
+
+	
+	public Transaction createTransaction(Long fromUserId, Long toUserId, TransferRequestDto transferRequest, UUID referenceId) {
 		
-		Optional<Transaction> transaction = transactionRepository.findByReferenceId(referanceNumber);
+		Optional<Transaction> transaction = transactionRepository.findByReferenceId(referenceId);
 		
 		if(transaction.isPresent()) {
 			return transaction.get();
@@ -35,17 +41,18 @@ public class TransactionService {
 		
 		Transaction tx = new Transaction();
 		
-		tx.setAmount(amount);
+		tx.setAmount(transferRequest.getAmount());
 		tx.setStatus("PENDING");
 		tx.setCreatedAt(Instant.now());
-		tx.setReferenceId(referanceNumber);
+
+		tx.setReferenceId(referenceId);
 		tx.setFromUserId(fromUserId);
 		tx.setToUserId(toUserId);
 	    transactionRepository.save(tx);
 	    
 	    
-	    LedgerEntry creditEntry = new LedgerEntry(tx.getId(),toUserId, amount);
-	    LedgerEntry debitEntry = new LedgerEntry(tx.getId(),fromUserId, amount.negate());
+	    LedgerEntry creditEntry = new LedgerEntry(tx.getId(),toUserId, tx.getAmount());
+	    LedgerEntry debitEntry = new LedgerEntry(tx.getId(),fromUserId, tx.getAmount().negate());
 	    
 	    ledgerEntryRepository.save(debitEntry);
         ledgerEntryRepository.save(creditEntry);
@@ -60,9 +67,13 @@ public class TransactionService {
         	transactionRepository.save(tx);
         	 throw new IllegalStateException("Ledger imbalance detected!");
         }
+        transactionRepository.save(tx);
+        MessageDto message = new MessageDto();
+        message.setId(UUID.randomUUID().toString());
+        message.setTimestamp(System.currentTimeMillis());
         
+        kafkaProducerService.sendMessage(message);
         
-        tx.setStatus("SUCCESS");
         return transactionRepository.save(tx);
 		
 		

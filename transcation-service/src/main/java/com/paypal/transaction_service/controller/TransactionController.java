@@ -24,22 +24,22 @@ public class TransactionController {
 	private TransactionService transactionService; 
 	
 	@PostMapping("/transfer")
-	public ResponseEntity<?> addTransferRequest(@RequestBody TransferRequestDto request ) {
-		try {
 
-			UUID referenceId = request.getReferanceNumber() != null
+	public ResponseEntity<?> addTransferRequest(@RequestBody TransferRequestDto request) {
+
+	    try {
+	        UUID referenceId = request.getReferanceNumber() != null   //Should be generate from the frontend 
+	        		
 	                ? request.getReferanceNumber()
 	                : UUID.randomUUID();
-			
-			Transaction tx = transactionService.createTransaction(request.getFromUserId(), 
-					request.getToUserId(), 
-					referenceId,
-					request.getAmount());
-			return ResponseEntity.ok(tx);
-			
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-		}
+
+	        transactionService.createTransaction(request.getFromUserId(), request.getToUserId(), request,referenceId);
+
+	        return ResponseEntity.ok("Transaction created successfully");
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+	    }
 	}
+
 
 }
