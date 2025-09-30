@@ -1,40 +1,44 @@
 package com.paypal.transaction_service.controller;
 
-import java.security.Principal;
+
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.AuthenticatedPrincipal;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.paypal.transaction_service.dto.TransferRequestDto;
+import com.paypal.transaction_service.entity.Transaction;
 import com.paypal.transaction_service.service.TransactionService;
 
 @RestController
+@RequestMapping("/api")
 public class TransactionController {
 	
 	@Autowired
 	private TransactionService transactionService; 
 	
-	@PostMapping
-	public ResponseEntity<> addTransferRequest(@RequestBody TransferRequestDto request, @AuthenticationPrincipal AuthenticatedPrincipal principle ) {
+	@PostMapping("/transfer")
+	public ResponseEntity<?> addTransferRequest(@RequestBody TransferRequestDto request ) {
 		try {
-			Long fromUserId = Long.parseLong(principle.getName());
-			
+
 			UUID referenceId = request.getReferanceNumber() != null
 	                ? request.getReferanceNumber()
 	                : UUID.randomUUID();
 			
-			transactionService.createTransaction(fromUserId, request.getToUserId(), request);
-		}
-		catch{
+			Transaction tx = transactionService.createTransaction(request.getFromUserId(), 
+					request.getToUserId(), 
+					referenceId,
+					request.getAmount());
+			return ResponseEntity.ok(tx);
 			
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 		}
 	}
 

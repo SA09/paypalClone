@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,9 +25,9 @@ public class TransactionService {
 	private LedgerEntryRepository ledgerEntryRepository
 	;
 	
-	public Transaction createTransaction(Long fromUserId, Long toUserId, TransferRequestDto transferRequest) {
+	public Transaction createTransaction(Long fromUserId, Long toUserId, UUID referanceNumber, BigDecimal amount ) {
 		
-		Optional<Transaction> transaction = transactionRepository.findByReferenceId(transferRequest.getReferanceNumber());
+		Optional<Transaction> transaction = transactionRepository.findByReferenceId(referanceNumber);
 		
 		if(transaction.isPresent()) {
 			return transaction.get();
@@ -34,17 +35,17 @@ public class TransactionService {
 		
 		Transaction tx = new Transaction();
 		
-		tx.setAmount(transferRequest.getAmount());
+		tx.setAmount(amount);
 		tx.setStatus("PENDING");
 		tx.setCreatedAt(Instant.now());
-		tx.setReferenceId(transferRequest.getReferanceNumber());
+		tx.setReferenceId(referanceNumber);
 		tx.setFromUserId(fromUserId);
 		tx.setToUserId(toUserId);
 	    transactionRepository.save(tx);
 	    
 	    
-	    LedgerEntry creditEntry = new LedgerEntry(tx.getId(),toUserId, transferRequest.getAmount());
-	    LedgerEntry debitEntry = new LedgerEntry(tx.getId(),fromUserId, transferRequest.getAmount().negate());
+	    LedgerEntry creditEntry = new LedgerEntry(tx.getId(),toUserId, amount);
+	    LedgerEntry debitEntry = new LedgerEntry(tx.getId(),fromUserId, amount.negate());
 	    
 	    ledgerEntryRepository.save(debitEntry);
         ledgerEntryRepository.save(creditEntry);
