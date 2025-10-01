@@ -3,11 +3,11 @@ package com.paypal.transaction_service.service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import com.paypal.transaction_service.dto.MessageDto;
@@ -71,8 +71,16 @@ public class TransactionService {
         MessageDto message = new MessageDto();
         message.setId(UUID.randomUUID().toString());
         message.setTimestamp(System.currentTimeMillis());
+        Map<String, Object> payload = Map.of(
+        	    "transactionId", tx.getReferenceId().toString(),
+        	    "fromUserId", tx.getFromUserId(),
+        	    "toUserId", tx.getToUserId(),
+        	    "amount", tx.getAmount(),
+        	    "status", tx.getStatus()
+        	);
+      
         
-        kafkaProducerService.sendMessage(message);
+        kafkaProducerService.sendMessage(payload);
         
         return transactionRepository.save(tx);
 		
