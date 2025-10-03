@@ -17,6 +17,8 @@ import com.paypal.transaction_service.entity.Transaction;
 import com.paypal.transaction_service.repository.LedgerEntryRepository;
 import com.paypal.transaction_service.repository.TransactionRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class TransactionService {
 	
@@ -30,7 +32,7 @@ public class TransactionService {
 	private KafkaProducerService kafkaProducerService;
 	
 
-	
+	@Transactional
 	public Transaction createTransaction(Long fromUserId, Long toUserId, TransferRequestDto transferRequest, UUID referenceId) {
 		
 		Optional<Transaction> transaction = transactionRepository.findByReferenceId(referenceId);
