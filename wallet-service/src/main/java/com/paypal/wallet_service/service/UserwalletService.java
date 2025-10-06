@@ -17,12 +17,10 @@ public class UserwalletService {
 	@Autowired
 	private UserWalletRepository userWalletRepository;
 	
-	public UserWallet createWallet(Long userId){
-		System.err.println("ehfjek");
-		UserWallet newWallet = new UserWallet(userId, BigDecimal.ZERO, LocalDateTime.now());
+	public UserWallet createWallet(Long userId, String userName){
+		UserWallet newWallet = new UserWallet(userId, BigDecimal.ZERO, LocalDateTime.now(),userName);
 		userWalletRepository.save(newWallet);
 		return newWallet;
-		
 	}
 	
 	public BigDecimal getBalance(Long id){

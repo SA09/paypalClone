@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paypal.wallet_service.dto.TransactionEventDto;
+import com.paypal.wallet_service.dto.UserDto;
 
 import jakarta.transaction.Transactional;
 
@@ -30,6 +31,16 @@ public class KafkaConsumerService {
          
          userwalletService.creditBalance(toUserId,event.getAmount());
 		 userwalletService.debitBalance(fromUserId,event.getAmount());
+	}
+	
+	@KafkaListener(topics = "user", groupId = "wallet-create-service")
+	@Transactional
+	public void createWallet(String message) throws JsonMappingException, JsonProcessingException {
+         UserDto event = objectMapper.readValue(message, UserDto.class);
+         System.out.println("eventfr" + event);
+         Long userId = event.getUserId();
+         String userName = event.getUserName();         
+         userwalletService.createWallet(userId,userName);
 	}
 
 }

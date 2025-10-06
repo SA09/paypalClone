@@ -1,13 +1,16 @@
 package com.paypal.user_service.impl;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.paypal.user_service.entity.User;
 import com.paypal.user_service.repository.UserRepository;
+import com.paypal.user_service.service.UserProducerService;
 import com.paypal.user_service.service.UserService;
 
 @Service
@@ -16,11 +19,33 @@ public class UserImpl implements UserService{
 	@Autowired
 	private UserRepository userRepository;
 	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private UserProducerService userProducerService;
+	
+	
 
 	@Override
 	public User createUser(User user) {
-		User savedUser = userRepository.save(user);
-		return savedUser;
+		Optional<User> exisitingUser = userRepository.findByUserName(user.getUserName());
+		if(exisitingUser.isPresent()) {
+			 new RuntimeException("User already exist");
+		}
+		User newUser = new User();
+		newUser.setPassword(passwordEncoder.encode(user.getPassword()));
+		newUser.setUserName(user.getUserName());
+		newUser.setEmail(user.getEmail());
+		userRepository.save(newUser);
+		 Map<String, Object> payload = Map.of(
+	        	    "userId", newUser.getId(),
+	        	    "email", newUser.getEmail(),
+	        	    "userName", newUser.getUserName()
+
+	        	);
+		userProducerService.sendMessage(payload);
+		return newUser;
 	}
 
 	@Override

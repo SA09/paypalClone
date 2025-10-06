@@ -1,15 +1,18 @@
 package com.paypal.user_service.config;
 
 import java.io.IOException;
+import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.paypal.user_service.entity.User;
+import com.paypal.user_service.repository.UserRepository;
 import com.paypal.user_service.util.JwtUtil;
 
 import jakarta.servlet.FilterChain;
@@ -20,20 +23,18 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
+    @Autowired
+    private JwtUtil jwtUtil;
 
-    public JwtAuthFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
-        this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
-    }
+    @Autowired
+    private UserRepository userRepository; // directly use your User entity
 
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
 
-
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-			throws ServletException, IOException {
-		String authHeader = request.getHeader("Authorization");
+        String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
 
@@ -43,18 +44,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            // load user directly from DB
+            User user = userRepository.findByUserName(username)
+                    .orElse(null);
 
-            if (jwtUtil.validateToken(token)) {
+            if (user != null && jwtUtil.validateToken(token)) {
+                // create authentication without UserDetailsService
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        new UsernamePasswordAuthenticationToken(user, null, List.of());
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
+
         filterChain.doFilter(request, response);
-		
-	}
+    }
 }

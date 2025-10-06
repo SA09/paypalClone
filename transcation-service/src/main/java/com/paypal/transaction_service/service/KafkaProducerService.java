@@ -15,7 +15,6 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 import com.paypal.transaction_service.dto.MessageDto;
-import com.paypal.transaction_service.entity.Transaction;
 
 @Service
 public class KafkaProducerService {
@@ -25,6 +24,7 @@ public class KafkaProducerService {
     
     @Autowired
     private KafkaTemplate<String, MessageDto> kafkaTemplate;
+    
     
     @Value("${kafka.topic.name}")
     private String topicName;

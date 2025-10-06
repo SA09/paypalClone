@@ -18,17 +18,7 @@ public class WalletController {
 	@Autowired
 	private UserwalletService userwalletService;
 	
-	@PostMapping("/create")
-	public ResponseEntity<?> getMethodName(@RequestParam Long userID) {
-		try {
-			UserWallet newWallet =  userwalletService.createWallet(userID);
-			return ResponseEntity.ok(newWallet);
-		} catch (Exception e) {
-			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-		}
-		
-
-	}
+	
 	
 
 }

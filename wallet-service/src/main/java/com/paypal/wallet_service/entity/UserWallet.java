@@ -15,19 +15,19 @@ public class UserWallet {
 	
 	@Id
 	private Long id;  // user ID from the user service 
-	
 	private BigDecimal WalletAmount;
-	
+	private String userName;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 	
 	public UserWallet() {
 	}
 	
-	public UserWallet(Long id, BigDecimal walletAmount, LocalDateTime createdAt) {
+	public UserWallet(Long id, BigDecimal walletAmount, LocalDateTime createdAt, String userName) {
 		this.id = id;
 		this.WalletAmount = walletAmount;
 		this.createdAt = createdAt;
+		this.userName = userName;
 	}
 	
 	@PrePersist
