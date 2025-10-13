@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TransactionEventDto {
 
-	    private String transactionId;   // referenceId from transaction service
+	    private Long transactionId;   // referenceId from transaction service
 	    private Long fromUserId;
 	    private Long toUserId;
 	    private BigDecimal amount;

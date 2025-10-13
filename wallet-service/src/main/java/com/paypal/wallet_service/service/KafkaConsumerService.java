@@ -1,5 +1,7 @@
 package com.paypal.wallet_service.service;
 
+
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,9 @@ public class KafkaConsumerService {
 	@Autowired
     private ObjectMapper objectMapper;
 	
+	@Autowired
+	private KafkaProducerService kafkaProducerService;
+	
 	@KafkaListener(topics = "transaction", groupId = "wallet-service")
 	@Transactional
 	public void updateBalance(String message) throws JsonMappingException, JsonProcessingException {
@@ -31,6 +36,10 @@ public class KafkaConsumerService {
          
          userwalletService.creditBalance(toUserId,event.getAmount());
 		 userwalletService.debitBalance(fromUserId,event.getAmount());
+		 
+		 kafkaProducerService.transactionUpdateStatus(event.getTransactionId().toString(), "SUCCESS");
+		 
+		 
 	}
 	
 	@KafkaListener(topics = "user", groupId = "wallet-create-service")
@@ -42,5 +51,7 @@ public class KafkaConsumerService {
          String userName = event.getUserName();         
          userwalletService.createWallet(userId,userName);
 	}
+	
+	
 
 }

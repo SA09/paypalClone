@@ -55,7 +55,6 @@ public class TransactionService {
 		tx.setAmount(amount);
 		tx.setStatus("PENDING");
 		tx.setCreatedAt(Instant.now());
-
 		tx.setReferenceId(referenceId);
 		tx.setFromUserId(fromUserId);
 		tx.setToUserId(toUserId);
@@ -79,11 +78,8 @@ public class TransactionService {
         	 throw new IllegalStateException("Ledger imbalance detected!");
         }
         transactionRepository.save(tx);
-        MessageDto message = new MessageDto();
-        message.setId(UUID.randomUUID().toString());
-        message.setTimestamp(System.currentTimeMillis());
         Map<String, Object> payload = Map.of(
-        	    "transactionId", tx.getReferenceId().toString(),
+        	    "transactionId", tx.getId(),
         	    "fromUserId", tx.getFromUserId(),
         	    "toUserId", tx.getToUserId(),
         	    "amount", tx.getAmount(),
@@ -97,6 +93,7 @@ public class TransactionService {
 	}
 	
 	private BigDecimal checkUserBalance(Long fromUserId) {
+		System.out.println(fromUserId);
 		String url = "http://localhost:8083/wallets/get-balance?userId=" + fromUserId;
 
         try {
