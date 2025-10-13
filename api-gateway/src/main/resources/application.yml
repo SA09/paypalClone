@@ -1,38 +1,31 @@
 server:
-  port: 8080
+  port: 80
 
 spring:
+  application:
+    name: api-gateway
   cloud:
     gateway:
-      default-filters:
-        - RemoveRequestHeader=Cookie
-      routes:
-        - id: user-service
-          uri: http://localhost:8080
-          predicates:
-            - Path=/user/**
-            
-        - id: transaction-service
-          uri: http://localhost:8081
-          predicates:
-            - Path=/transactions/**
+      server:
+        webflux:
+          routes:
+            - id: user-service
+              uri: http://localhost:8080
+              predicates:
+                - Path=/users/**
+            - id: transaction-service
+              uri: http://localhost:8081
+              predicates:
+                - Path=/transactions/**
+            - id: wallet-service
+              uri: http://localhost:8083
+              predicates:
+                - Path=/wallets/**
+            - id: notification-service
+              uri: http://localhost:8082
+              predicates:
+                - Path=/notifications/**
 
-        - id: wallet-service
-          uri: http://localhost:8082
-          predicates:
-            - Path=/wallets/**
-
-        - id: notification-service
-          uri: http://localhost:8083
-          predicates:
-            - Path=/notifications/**
-            
-        - id: reward-service
-          uri: http://localhost:8084
-          predicates:
-            - Path=/rewards/**
-
-
-  security:
-    basic:
-      enabled: false
+jwt:
+  secret: ReplaceWithASecureKeyAtLeast32BytesLong_ForHS256_or_48+ForHS384
+  algorithm: HS256

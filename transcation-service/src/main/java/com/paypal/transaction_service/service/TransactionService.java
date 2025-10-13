@@ -8,7 +8,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.paypal.transaction_service.dto.MessageDto;
 import com.paypal.transaction_service.dto.TransferRequestDto;
@@ -30,20 +32,27 @@ public class TransactionService {
     
     @Autowired
 	private KafkaProducerService kafkaProducerService;
+    
+    @Autowired
+    private RestTemplate restTemplate;
 	
 
 	@Transactional
-	public Transaction createTransaction(Long fromUserId, Long toUserId, TransferRequestDto transferRequest, UUID referenceId) {
+	public Transaction createTransaction(Long fromUserId, Long toUserId, BigDecimal amount, UUID referenceId) {
 		
 		Optional<Transaction> transaction = transactionRepository.findByReferenceId(referenceId);
-		
+		BigDecimal walletBalance = checkUserBalance(fromUserId);
+		System.out.println(walletBalance);
+		if(walletBalance.compareTo(amount)<0) {
+			 throw new RuntimeException("Insufficient balance");
+		}
 		if(transaction.isPresent()) {
 			return transaction.get();
 		}
 		
 		Transaction tx = new Transaction();
 		
-		tx.setAmount(transferRequest.getAmount());
+		tx.setAmount(amount);
 		tx.setStatus("PENDING");
 		tx.setCreatedAt(Instant.now());
 
@@ -84,10 +93,24 @@ public class TransactionService {
         
         kafkaProducerService.sendMessage(payload);
         
-        return transactionRepository.save(tx);
-		
-		
-		
+        return transactionRepository.save(tx);		
 	}
+	
+	private BigDecimal checkUserBalance(Long fromUserId) {
+		String url = "http://localhost:8083/wallets/get-balance?userId=" + fromUserId;
+
+        try {
+            ResponseEntity<BigDecimal> response = restTemplate.getForEntity(url, BigDecimal.class);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return response.getBody();
+            } else {
+                throw new RuntimeException("Failed to fetch balance. Status: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error while calling wallet service: " + e.getMessage(), e);
+        }
+    }
+	
 
 }

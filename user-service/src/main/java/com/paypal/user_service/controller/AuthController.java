@@ -17,7 +17,7 @@ import com.paypal.user_service.service.UserService;
 import com.paypal.user_service.util.JwtUtil;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/users")
 public class AuthController {
 
 		@Autowired    
@@ -25,18 +25,14 @@ public class AuthController {
 		
 		@Autowired
 		private UserService userService;
-		
-		@Autowired
-	    private JwtUtil jwtUtil;
-
-
 
 	    @PostMapping("/login")
 	    public String login(@RequestParam String username, @RequestParam String password) {
 	        authenticationManager.authenticate(
 	                new UsernamePasswordAuthenticationToken(username, password)
 	        );
-	        return jwtUtil.generateToken(username);
+	        return userService.genrateJwtToken(username);
+	       
 	    }
 	    
 	    

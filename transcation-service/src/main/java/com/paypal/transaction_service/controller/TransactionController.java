@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,24 +17,19 @@ import com.paypal.transaction_service.dto.TransferRequestDto;
 import com.paypal.transaction_service.service.TransactionService;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/transactions")
 public class TransactionController {
 	
 	@Autowired
 	private TransactionService transactionService; 
 	
 	@PostMapping("/transfer")
-
-	public ResponseEntity<?> addTransferRequest(@RequestBody TransferRequestDto request) {
+	public ResponseEntity<?> addTransferRequest(@RequestBody TransferRequestDto request ,@RequestHeader("X-UserId") String userId) {
 
 	    try {
-	        UUID referenceId = request.getReferanceNumber() != null   //Should be generate from the frontend 
-	        		
-	                ? request.getReferanceNumber()
-	                : UUID.randomUUID();
-
-	        transactionService.createTransaction(request.getFromUserId(), request.getToUserId(), request,referenceId);
-
+	    	System.out.println("user id" + userId);
+	        UUID referenceId = request.getReferanceNumber() != null? request.getReferanceNumber(): UUID.randomUUID();
+	        transactionService.createTransaction(Long.parseLong(userId), request.getToUserId() ,request.getAmount(),referenceId);
 	        return ResponseEntity.ok("Transaction created successfully");
 	    } catch (Exception e) {
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());

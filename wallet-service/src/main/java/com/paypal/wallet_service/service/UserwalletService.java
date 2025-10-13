@@ -29,7 +29,6 @@ public class UserwalletService {
 	    return amount;
 	}
 	
-	
    public BigDecimal creditBalance(Long userId, BigDecimal amount) {
 	   UserWallet wallet = userWalletRepository.findById(userId).orElseThrow(()-> new RuntimeException("This user does not exist"));
 	   BigDecimal totalAmount = wallet.getWalletAmount().add(amount);
