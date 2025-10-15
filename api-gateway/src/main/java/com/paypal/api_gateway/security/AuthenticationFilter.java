@@ -44,7 +44,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         System.out.println("Incoming request: " + path);
 
         if (path.startsWith("/users") || path.startsWith("/public")) {
-        	System.out.println("Aiiims " + path);
+        	System.out.println("Aiims " + path);
             return chain.filter(exchange);
         }
 
@@ -85,6 +85,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             return exchange.getResponse().setComplete();
         }
     }
+    
 
     @Override
     public int getOrder() {

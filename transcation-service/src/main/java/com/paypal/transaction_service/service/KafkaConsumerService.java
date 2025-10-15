@@ -23,7 +23,7 @@ import jakarta.transaction.Transactional;
 public class KafkaConsumerService {
 	
 	private static final Logger log = LoggerFactory.getLogger(KafkaConsumerService.class);
-	
+	  
 	@Autowired
 	private TransactionRepository transactionRepository;
 	
