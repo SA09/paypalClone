@@ -16,6 +16,7 @@ public class UserWallet {
 	@Id
 	private Long id;  // user ID from the user service 
 	private BigDecimal WalletAmount;
+	private BigDecimal avilableAmount;
 	private String userName;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
