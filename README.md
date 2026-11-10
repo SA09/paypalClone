@@ -1,4 +1,4 @@
-# 🚀 Microservices Architecture with Spring Boot, Spring Cloud Gateway & Redis Rate Limiting
+# Microservices Architecture with Spring Boot, Spring Cloud Gateway & Redis Rate Limiting
 
 A **microservices-based application** built using Spring Boot and Spring Cloud Gateway, demonstrating inter-service communication with `RestTemplate`, JWT-based authentication, and API rate limiting using Redis.
 
